@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="si" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyQuest RPG - A/L Commerce Stream (වාණිජ විශය ධාරාව)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#f59e0b',
+                        gem: '#06b6d4',
+                        mana: '#3b82f6',
+                        hp: '#ef4444',
+                        xp: '#10b981',
+                        commerce: '#8b5cf6'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+Sinhala:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans Sinhala', sans-serif;
+            user-select: none;
+        }
+        .damage-pop {
+            animation: popUp 0.8s ease-out forwards;
+        }
+        @keyframes popUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            50% { opacity: 1; transform: translateY(-25px) scale(1.3); }
+            100% { opacity: 0; transform: translateY(-40px) scale(0.8); }
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+
+    <!-- Top Navigation & Live Header -->
+    <header class="bg-slate-900/90 border-b border-slate-800 backdrop-blur sticky top-0 z-40 px-4 py-3 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white text-xl font-black shadow-md shadow-purple-500/20">
+                    <i class="fa-solid font-bold fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg md:text-xl tracking-tight bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        StudyQuest <span class="text-xs px-2 py-0.5 rounded bg-purple-950/80 text-purple-300 border border-purple-700/50" id="headerStreamTag">A/L Commerce</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium" id="subHeaderTag">උසස් පෙළ වාණිජ විශය ධාරාව වෙනුවෙන්මයි</p>
+                </div>
+            </div>
+
+            <!-- Date, Precise Millisecond Clock & Autosave -->
+            <div class="flex items-center gap-3 text-xs md:text-sm">
+                <div class="bg-slate-800/80 border border-slate-700/80 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                    <i class="fa-regular fa-clock text-purple-400"></i>
+                    <span id="liveClock" class="font-mono font-semibold text-amber-300">00:00:00.000</span>
+                    <span id="liveDate" class="text-slate-400 border-l border-slate-700 pl-2">----/--/--</span>
+                </div>
+
+                <div id="saveBadge" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-950/60 text-emerald-400 border border-emerald-800/50 text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="saveStatusText">ස්වයංක්‍රීයව සුරැකිණි</span>
+                </div>
+
+                <!-- Language Switcher Button -->
+                <button id="langToggleBtn" onclick="toggleLanguage()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition shadow">
+                    <i class="fa-solid fa-language text-sm"></i>
+                    <span id="langBtnLabel">English</span>
+                </button>
+
+                <!-- System / Factory Reset Button -->
+                <button onclick="openResetModal()" class="bg-rose-950/80 hover:bg-rose-900 border border-rose-800/60 text-rose-300 font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition shadow" title="Reset Application">
+                    <i class="fa-solid fa-rotate"></i>
+                    <span id="btnHeaderReset">නැවත සකසන්න</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto w-full px-4 py-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- LEFT COLUMN: Character HUD & Boss Quest Arena (4 cols) -->
+        <section class="lg:col-span-4 space-y-6">
+            
+            <!-- Character HUD -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-purple-600/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                <div class="flex items-center gap-4">
+                    <div class="relative">
+                        <div id="avatarDisplay" class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-700 to-indigo-900 flex items-center justify-center text-3xl text-purple-200 border-2 border-purple-500/50 shadow-lg">
+                            🎓
+                        </div>
+                        <button onclick="cycleAvatar()" class="absolute -bottom-1 -right-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 w-6 h-6 rounded-full text-xs flex items-center justify-center" title="Change Avatar">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                            <h2 id="heroName" class="font-bold text-slate-100 truncate text-base">Commerce Scholar</h2>
+                            <span class="text-xs bg-purple-900/60 text-purple-300 px-2 py-0.5 rounded font-mono border border-purple-700/40">Lvl <span id="heroLevel">1</span></span>
+                        </div>
+                        <p class="text-xs text-purple-400 font-medium" id="heroClassLabel">A/L Commerce Master</p>
+                        <div class="flex items-center gap-3 mt-2 text-xs font-semibold">
+                            <span class="text-amber-400 flex items-center gap-1"><i class="fa-solid fa-coins"></i> <span id="heroGold">0</span></span>
+                            <span class="text-cyan-400 flex items-center gap-1"><i class="fa-solid fa-gem"></i> <span id="heroGems">0</span></span>
+                            <span class="text-orange-400 flex items-center gap-1"><i class="fa-solid fa-fire"></i> <span id="heroStreak">0</span> d</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stat Bars -->
+                <div class="mt-5 space-y-3 text-xs">
+                    <!-- HP -->
+                    <div>
+                        <div class="flex justify-between mb-1 font-semibold">
+                            <span class="text-rose-400 flex items-center gap-1"><i class="fa-solid fa-heart"></i> <span id="labelHP">සෞඛ්‍යය (HP)</span></span>
+                            <span id="textHP" class="text-slate-400">100/100</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                            <div id="barHP" class="bg-rose-500 h-2.5 rounded-full transition-all duration-300" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <!-- XP -->
+                    <div>
+                        <div class="flex justify-between mb-1 font-semibold">
+                            <span class="text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-bolt"></i> <span id="labelXP">අත්දැකීම් (XP)</span></span>
+                            <span id="textXP" class="text-slate-400">0/100</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                            <div id="barXP" class="bg-emerald-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Mana -->
+                    <div>
+                        <div class="flex justify-between mb-1 font-semibold">
+                            <span class="text-blue-400 flex items-center gap-1"><i class="fa-solid fa-wand-magic-sparkles"></i> <span id="labelMP">මානා (MP)</span></span>
+                            <span id="textMP" class="text-slate-400">50/50</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                            <div id="barMP" class="bg-blue-500 h-2.5 rounded-full transition-all duration-300" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Boss Quest Arena -->
+            <div id="bossCard" class="bg-gradient-to-b from-slate-900 to-slate-950 border border-purple-900/50 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-skull"></i> <span id="bossHeader">විභාග රාක්ෂ සටන</span>
+                    </span>
+                    <span class="text-xs bg-rose-950/80 text-rose-300 px-2 py-0.5 rounded border border-rose-800/50 font-mono">Stage <span id="bossStage">1</span></span>
+                </div>
+
+                <div class="flex items-center gap-4 my-3 relative min-h-[90px]">
+                    <div id="bossSprite" class="text-5xl transition-transform duration-200 hover:scale-110">
+                        👹
+                    </div>
+                    <div id="damagePopArea" class="absolute left-10 top-0 pointer-events-none"></div>
+
+                    <div class="flex-1">
+                        <h3 id="bossName" class="font-extrabold text-slate-100 text-sm md:text-base">A/L Exam Shadow</h3>
+                        <p id="bossDesc" class="text-xs text-slate-400 mt-0.5">පාඩම් නොකර සිටීමේ අලසකම නමැති රාක්ෂයා!</p>
+                        <div class="mt-2">
+                            <div class="flex justify-between text-xs mb-1 font-mono">
+                                <span class="text-slate-400">HP</span>
+                                <span id="bossHPText" class="text-rose-400 font-bold">200 / 200</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-700">
+                                <div id="bossHPBar" class="bg-gradient-to-r from-rose-600 to-red-500 h-3 transition-all duration-300" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p id="bossHelpText" class="text-xs text-purple-300/80 italic mt-2 text-center bg-purple-950/30 py-1.5 px-2 rounded border border-purple-900/30">
+                    වැඩ කටයුතු (Tasks) සම්පූර්ණ කර රාක්ෂයාට පහර දෙන්න!
+                </p>
+            </div>
+
+            <!-- Fast-Forward Day Simulator -->
+            <div class="bg-slate-900/80 border border-amber-900/40 rounded-2xl p-4 text-center space-y-2">
+                <div class="flex items-center justify-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
+                    <i class="fa-solid fa-forward-fast"></i>
+                    <span id="simTitle">ඊළඟ දිනයට යන්න (Simulate Tomorrow)</span>
+                </div>
+                <p id="simDesc" class="text-xs text-slate-400">
+                    ඊළඟ දිනට මාරු වී දෛනික වාර්තා සුරැකීම සහ Dailies Reset වීම පරීක්ෂා කරන්න.
+                </p>
+                <button onclick="simulateNextDay()" class="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-slate-950 font-extrabold py-2 px-4 rounded-xl text-xs shadow-md transition">
+                    <i class="fa-solid fa-moon"></i> <span id="simBtnText">දින මාරුව පරීක්ෂා කරන්න (Rollover Day)</span>
+                </button>
+            </div>
+
+        </section>
+
+        <!-- RIGHT COLUMN: Habitica Tasks & Shop & History Tabs (8 cols) -->
+        <section class="lg:col-span-8 space-y-6">
+
+            <!-- Navigation Tabs -->
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2 overflow-x-auto gap-2">
+                <div class="flex gap-2">
+                    <button id="tabBtnTasks" onclick="switchTab('tasks')" class="px-4 py-2 rounded-xl text-xs md:text-sm font-bold bg-purple-600 text-white shadow-md flex items-center gap-2 transition">
+                        <i class="fa-solid fa-list-check"></i> <span id="tabLabelTasks">අධ්‍යයන වැඩසටහන් (Tasks)</span>
+                    </button>
+                    <button id="tabBtnShop" onclick="switchTab('shop')" class="px-4 py-2 rounded-xl text-xs md:text-sm font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2 transition">
+                        <i class="fa-solid fa-store"></i> <span id="tabLabelShop">වෙළඳසැල (Shop)</span>
+                    </button>
+                    <button id="tabBtnHistory" onclick="switchTab('history')" class="px-4 py-2 rounded-xl text-xs md:text-sm font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2 transition">
+                        <i class="fa-solid fa-clock-rotate-left"></i> <span id="tabLabelHistory">අතීත වාර්තා (History)</span>
+                    </button>
+                </div>
+
+                <button onclick="resetDefaultCommerceTasks()" class="text-xs text-slate-400 hover:text-purple-300 underline font-medium whitespace-nowrap pl-2">
+                    <i class="fa-solid fa-rotate-left"></i> <span id="btnResetTasks">වාණිජ Default Tasks පූරණය</span>
+                </button>
+            </div>
+
+            <!-- TAB 1: TASKS MATRIX -->
+            <div id="tabContentTasks" class="space-y-6">
+                
+                <!-- Quick Task Creation Form -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="newTaskTitle" placeholder="නව පාඩම් කාර්යයක් ඇතුළත් කරන්න..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs md:text-sm text-slate-100 focus:outline-none focus:border-purple-500">
+                        
+                        <select id="newTaskType" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-purple-500">
+                            <option value="todo">To-Do (කාර්යය)</option>
+                            <option value="daily">Daily (දෛනික)</option>
+                            <option value="habit">Habit (පුරුද්ද)</option>
+                        </select>
+
+                        <select id="newTaskSubject" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-purple-300 font-semibold focus:outline-none focus:border-purple-500">
+                            <option value="Accounting">Accounting (ගිණුම්කරණය)</option>
+                            <option value="Business Studies">Business Studies (ව්‍යාපාර)</option>
+                            <option value="Economics">Economics (ආර්ථික විද්‍යාව)</option>
+                            <option value="ICT / Stats">ICT / B.Stats</option>
+                            <option value="General">General (සාමාන්‍ය)</option>
+                        </select>
+
+                        <select id="newTaskDifficulty" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-amber-300 focus:outline-none focus:border-purple-500">
+                            <option value="Easy">Easy (ලෙහෙසි)</option>
+                            <option value="Medium" selected>Medium (සාමාන්‍ය)</option>
+                            <option value="Hard">Hard (අපහසු)</option>
+                            <option value="Epic">Epic (විශාල)</option>
+                        </select>
+
+                        <button onclick="addNewTask()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-plus"></i> <span id="btnAddTask">එක් කරන්න</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Habitica 3-Column Task Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                    <!-- Habits Column -->
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col h-[520px]">
+                        <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+                            <h3 class="font-bold text-sm text-purple-300 flex items-center gap-2">
+                                <i class="fa-solid fa-repeat text-purple-400"></i> <span id="colHabitsTitle">පුරුදු (Habits)</span>
+                            </h3>
+                            <span id="countHabits" class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">0</span>
+                        </div>
+                        <div id="listHabits" class="space-y-2.5 overflow-y-auto custom-scrollbar flex-1 pr-1"></div>
+                    </div>
+
+                    <!-- Dailies Column -->
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col h-[520px]">
+                        <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+                            <h3 class="font-bold text-sm text-emerald-300 flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-day text-emerald-400"></i> <span id="colDailiesTitle">දෛනික වැඩ (Dailies)</span>
+                            </h3>
+                            <span id="countDailies" class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">0</span>
+                        </div>
+                        <div id="listDailies" class="space-y-2.5 overflow-y-auto custom-scrollbar flex-1 pr-1"></div>
+                    </div>
+
+                    <!-- To-Dos Column -->
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col h-[520px]">
+                        <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+                            <h3 class="font-bold text-sm text-amber-300 flex items-center gap-2">
+                                <i class="fa-solid fa-check-double text-amber-400"></i> <span id="colTodosTitle">අධ්‍යයන ලැයිස්තුව (To-Dos)</span>
+                            </h3>
+                            <span id="countTodos" class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">0</span>
+                        </div>
+                        <div id="listTodos" class="space-y-2.5 overflow-y-auto custom-scrollbar flex-1 pr-1"></div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- TAB 2: SHOP -->
+            <div id="tabContentShop" class="hidden space-y-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+                        <div>
+                            <h3 class="font-bold text-lg text-amber-400 flex items-center gap-2">
+                                <i class="fa-solid fa-store"></i> <span id="shopTitle">ත්‍යාග සහ උපකරණ වෙළඳසැල</span>
+                            </h3>
+                            <p class="text-xs text-slate-400" id="shopSub">රත්රන් (Gold) සහ මැණික් (Gems) භාවිතයෙන් ත්‍යාග ලබා ගන්න!</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400" id="labelYourGold">ඔබේ ශේෂය:</span>
+                            <div class="flex items-center gap-3 text-sm font-bold mt-0.5">
+                                <span class="text-amber-400"><i class="fa-solid fa-coins"></i> <span id="shopUserGold">0</span></span>
+                                <span class="text-cyan-400"><i class="fa-solid fa-gem"></i> <span id="shopUserGems">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shop Items Grid -->
+                    <div id="shopGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+            </div>
+
+            <!-- TAB 3: HISTORY LOG -->
+            <div id="tabContentHistory" class="hidden space-y-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex flex-wrap items-center justify-between mb-4 border-b border-slate-800 pb-3 gap-2">
+                        <div>
+                            <h3 class="font-bold text-lg text-purple-300 flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left"></i> <span id="historyTitle">අතීත දෛනික වාර්තා</span>
+                            </h3>
+                            <p class="text-xs text-slate-400" id="historySub">පසුගිය දිනවල ඔබ ලැබූ ප්‍රගතිය සහ සම්පූර්ණ කළ පාඩම් සංඛ්‍යාවන්.</p>
+                        </div>
+                        <button id="btnClearAllHistory" onclick="clearAllHistory()" class="bg-rose-950/80 hover:bg-rose-900 border border-rose-800/60 text-rose-300 font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span id="labelClearAllHistory">සියලු වාර්තා මකන්න</span>
+                        </button>
+                    </div>
+
+                    <div id="historyContainer" class="space-y-4">
+                        <!-- Dynamic History Cards inserted here -->
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Factory Reset Confirmation Modal -->
+    <div id="resetModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-rose-900/60 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-rose-950 border border-rose-800 flex items-center justify-center text-rose-400 text-2xl mx-auto">
+                <i class="fa-solid fa-rotate-left"></i>
+            </div>
+            <div class="text-center space-y-1">
+                <h3 id="resetModalTitle" class="text-base md:text-lg font-extrabold text-slate-100">නැවත සැකසීමේ ක්‍රමය තෝරන්න</h3>
+                <p id="resetModalSub" class="text-xs text-rose-300/90 font-medium">Reset Options / නැවත සැකසීමේ විකල්ප</p>
+            </div>
+            <p id="resetModalBody" class="text-xs text-slate-400 text-center leading-relaxed bg-slate-950 p-3 rounded-xl border border-slate-800">
+                ඔබ සාදාගත් Tasks (කාර්යයන්) ඉතිරි කර Level, Gold, Gems සහ Boss progress පමණක් Reset කිරීමට හෝ සියල්ලම මකා දැමීමට පහත විකල්ප භාවිතා කරන්න.
+            </p>
+            <div class="flex flex-col gap-2 pt-2">
+                <!-- Option 1: Reset Progress Only (Keep Tasks) -->
+                <button onclick="executeReset(false)" id="btnResetProgressOnly" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-md">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span id="btnResetProgressOnlyText">ප්‍රගතිය පමණක් මකන්න (Tasks ඉතිරි කරන්න)</span>
+                </button>
+
+                <!-- Option 2: Full Reset (Everything) -->
+                <button onclick="executeReset(true)" id="btnFullReset" class="w-full bg-rose-950/80 hover:bg-rose-900 border border-rose-800/80 text-rose-300 font-bold py-2.5 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trash-arrow-up"></i>
+                    <span id="btnFullResetText">සියල්ලම මුල සිට සකසන්න (Full Reset)</span>
+                </button>
+
+                <!-- Cancel Button -->
+                <button onclick="closeResetModal()" id="btnCancelReset" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded-xl text-xs transition mt-1">
+                    අවලංගු කරන්න
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <script>
+        /* ==========================================================================
+           STATE & DATA STRUCTURES (A/L Commerce Dedicated)
+           ========================================================================== */
+        
+        const DEFAULT_COMMERCE_TASKS = [
+            // HABITS
+            { id: 'h1', title: 'Accounting T-Accounts & Balance Sheet Practice (ගිණුම්කරණය)', type: 'habit', subject: 'Accounting', difficulty: 'Medium', positiveCount: 0, negativeCount: 0 },
+            { id: 'h2', title: 'Economics Theory & Curve Diagrams Revision (ආර්ථික විද්‍යාව)', type: 'habit', subject: 'Economics', difficulty: 'Medium', positiveCount: 0, negativeCount: 0 },
+            { id: 'h3', title: 'Business Studies Definitions & Management Principles (ව්‍යාපාර)', type: 'habit', subject: 'Business Studies', difficulty: 'Easy', positiveCount: 0, negativeCount: 0 },
+            { id: 'h4', title: 'Avoid Distractions & Social Media during Study Time', type: 'habit', subject: 'General', difficulty: 'Hard', positiveCount: 0, negativeCount: 0 },
+
+            // DAILIES
+            { id: 'd1', title: 'Complete 1 Accounting Past Paper Structure Question', type: 'daily', subject: 'Accounting', difficulty: 'Hard', completed: false, streak: 0 },
+            { id: 'd2', title: 'Memorize 5 Economics Key Terms / Definitions', type: 'daily', subject: 'Economics', difficulty: 'Easy', completed: false, streak: 0 },
+            { id: 'd3', title: 'Review 1 Business Studies Chapter (e.g. Marketing / Finance)', type: 'daily', subject: 'Business Studies', difficulty: 'Medium', completed: false, streak: 0 },
+            { id: 'd4', title: 'Solve 10 ICT / Business Statistics Questions', type: 'daily', subject: 'ICT / Stats', difficulty: 'Medium', completed: false, streak: 0 },
+
+            // TO-DOS
+            { id: 't1', title: 'Finish Accounting Cash Flow Statement Exercises', type: 'todo', subject: 'Accounting', difficulty: 'Hard', completed: false },
+            { id: 't2', title: 'Write Economics Essay Answer on National Income', type: 'todo', subject: 'Economics', difficulty: 'Epic', completed: false },
+            { id: 't3', title: 'Summarize Business Studies Stock Exchange Chapter', type: 'todo', subject: 'Business Studies', difficulty: 'Medium', completed: false },
+            { id: 't4', title: 'Practice ICT Database Queries / Stat Formulas', type: 'todo', subject: 'ICT / Stats', difficulty: 'Medium', completed: false }
+        ];
+
+        const SHOP_ITEMS_DATA = [
+            { id: 's1', icon: '🍷', nameEn: 'Health Potion', nameSi: 'සෞඛ්‍ය ඖෂධය (+30 HP)', cost: 20, currency: 'gold', type: 'hp', amount: 30 },
+            { id: 's2', icon: '🧪', nameEn: 'Mana Elixir', nameSi: 'මානා ඖෂධය (+25 MP)', cost: 15, currency: 'gold', type: 'mp', amount: 25 },
+            { id: 's3', icon: '📜', nameEn: 'Accounting Scroll (+100 XP)', nameSi: 'ගිණුම්කරණ පුස්කොළ පොත (+100 XP)', cost: 50, currency: 'gold', type: 'xp', amount: 100 },
+            { id: 's4', icon: '⚔️', nameEn: 'Commerce Master Sword (+50 Boss Dmg)', nameSi: 'වාණිජ ශූර කඩුව (+50 රාක්ෂ හානිය)', cost: 100, currency: 'gold', type: 'weapon', amount: 50 },
+            { id: 's5', icon: '☕', nameEn: '30 Min Tea Break Reward', nameSi: 'විනාඩි 30ක තේ පාන විවේකය', cost: 40, currency: 'gold', type: 'reward' },
+            { id: 's6', icon: '🎮', nameEn: '1 Hour Gaming / Movie Reward', nameSi: 'පැය 1ක පරිගණක ක්‍රීඩා / චිත්‍රපට විවේකය', cost: 80, currency: 'gold', type: 'reward' },
+            { id: 's7', icon: '💎', nameEn: 'A/L Scholar Crown (+1 Gem)', nameSi: 'විභාග ජයග්‍රාහී ඔටුන්න', cost: 150, currency: 'gold', type: 'gem', amount: 1 }
+        ];
+
+        let gameState = {
+            lang: 'si', // 'si' or 'en'
+            hero: {
+                name: 'Commerce Scholar',
+                avatar: '🎓',
+                level: 1,
+                hp: 100,
+                maxHp: 100,
+                xp: 0,
+                maxXp: 100,
+                mp: 50,
+                maxMp: 50,
+                gold: 50,
+                gems: 2,
+                streak: 1
+            },
+            boss: {
+                stage: 1,
+                nameEn: 'A/L Exam Shadow',
+                nameSi: 'උසස් පෙළ විභාග රාක්ෂයා',
+                hp: 200,
+                maxHp: 200,
+                sprite: '👹'
+            },
+            tasks: [],
+            history: [],
+            lastActiveDate: new Date().toISOString().split('T')[0]
+        };
+
+        /* ==========================================================================
+           TRANSLATION DICTIONARY
+           ========================================================================== */
+        const TRANSLATIONS = {
+            si: {
+                headerStream: 'A/L Commerce',
+                subHeader: 'උසස් පෙළ වාණිජ විශය ධාරාව වෙනුවෙන්මයි',
+                saveStatus: 'ස්වයංක්‍රීයව සුරැකිණි',
+                heroClass: 'A/L වාණිජ විශය ශූරයා',
+                labelHP: 'සෞඛ්‍යය (HP)',
+                labelXP: 'අත්දැකීම් (XP)',
+                labelMP: 'මානා (MP)',
+                bossHeader: 'විභාග රාක්ෂ සටන',
+                bossHelp: 'වැඩ කටයුතු (Tasks) සම්පූර්ණ කර රාක්ෂයාට පහර දෙන්න!',
+                simTitle: 'ඊළඟ දිනයට යන්න (Simulate Tomorrow)',
+                simDesc: 'ඊළඟ දිනට මාරු වී දෛනික වාර්තා සුරැකීම සහ Dailies Reset වීම පරීක්ෂා කරන්න.',
+                simBtn: 'දින මාරුව පරීක්ෂා කරන්න (Rollover Day)',
+                tabTasks: 'අධ්‍යයන වැඩසටහන් (Tasks)',
+                tabShop: 'වෙළඳසැල (Shop)',
+                tabHistory: 'අතීත වාර්තා (History)',
+                btnReset: 'වාණිජ Default Tasks පූරණය',
+                addTaskBtn: 'එක් කරන්න',
+                inputPlaceholder: 'නව පාඩම් කාර්යයක් ඇතුළත් කරන්න...',
+                colHabits: 'පුරුදු (Habits)',
+                colDailies: 'දෛනික වැඩ (Dailies)',
+                colTodos: 'අධ්‍යයන ලැයිස්තුව (To-Dos)',
+                shopTitle: 'ත්‍යාග සහ උපකරණ වෙළඳසැල',
+                shopSub: 'රත්රන් (Gold) සහ මැණික් (Gems) භාවිතයෙන් ත්‍යාග ලබා ගන්න!',
+                labelBalance: 'ඔබේ ශේෂය:',
+                historyTitle: 'අතීත දෛනික වාර්තා',
+                historySub: 'පසුගිය දිනවල ඔබ ලැබූ ප්‍රගතිය සහ සම්පූර්ණ කළ පාඩම් සංඛ්‍යාවන්.',
+                labelClearAllHistory: 'සියලු වාර්තා මකන්න',
+                labelDeleteRecord: 'මකා දමන්න',
+                btnHeaderReset: 'නැවත සකසන්න',
+                resetModalTitle: 'නැවත සැකසීමේ ක්‍රමය තෝරන්න',
+                resetModalSub: 'Reset Options / නැවත සැකසීමේ විකල්ප',
+                resetModalBody: 'ඔබ සාදාගත් Tasks (කාර්යයන්) ඉතිරි කර Level, Gold, Gems සහ Boss progress පමණක් Reset කිරීමට හෝ සියල්ලම මකා දැමීමට පහත විකල්ප භාවිතා කරන්න.',
+                btnResetProgressOnlyText: 'ප්‍රගතිය පමණක් මකන්න (Tasks ඉතිරි කරන්න)',
+                btnFullResetText: 'සියල්ලම මුල සිට සකසන්න (Full Reset)',
+                btnCancelReset: 'අවලංගු කරන්න'
+            },
+            en: {
+                headerStream: 'A/L Commerce',
+                subHeader: 'Tailored for Sri Lankan A/L Commerce Stream',
+                saveStatus: 'Auto-saved',
+                heroClass: 'A/L Commerce Master',
+                labelHP: 'Health (HP)',
+                labelXP: 'Experience (XP)',
+                labelMP: 'Mana (MP)',
+                bossHeader: 'Exam Boss Arena',
+                bossHelp: 'Complete tasks to attack and defeat the Boss!',
+                simTitle: 'Simulate Tomorrow',
+                simDesc: 'Advance to the next day to test history logging and daily resets.',
+                simBtn: 'Fast-Forward Day (Rollover)',
+                tabTasks: 'Study Tasks',
+                tabShop: 'Quest Shop',
+                tabHistory: 'History Logs',
+                btnReset: 'Load Default Commerce Tasks',
+                addTaskBtn: 'Add Task',
+                inputPlaceholder: 'Enter a new study task...',
+                colHabits: 'Habits',
+                colDailies: 'Dailies',
+                colTodos: 'To-Dos',
+                shopTitle: 'Rewards & Gear Shop',
+                shopSub: 'Spend earned Gold and Gems for boosts and real-world breaks!',
+                labelBalance: 'Your Balance:',
+                historyTitle: 'Daily Performance History',
+                historySub: 'Archived records of your daily study completion, gold earned, and streaks.',
+                labelClearAllHistory: 'Clear All History',
+                labelDeleteRecord: 'Delete',
+                btnHeaderReset: 'Reset All',
+                resetModalTitle: 'Select Reset Mode',
+                resetModalSub: 'Choose how you would like to reset',
+                resetModalBody: 'Choose whether to preserve your customized study tasks while resetting stats/level, or perform a full wipe of everything.',
+                btnResetProgressOnlyText: 'Reset Progress Only (Keep My Tasks)',
+                btnFullResetText: 'Full Factory Reset (Delete Everything)',
+                btnCancelReset: 'Cancel'
+            }
+        };
+
+        /* ==========================================================================
+           INITIALIZATION & LIFECYCLE
+           ========================================================================== */
+        window.onload = function() {
+            loadFromLocalStorage();
+            checkDayRollover();
+            updateClock();
+            setInterval(updateClock, 30); // Millisecond precise clock
+            renderAll();
+        };
+
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('studyquest_commerce_state', JSON.stringify(gameState));
+                showSaveBadge();
+            } catch (e) {
+                console.error("Save failed:", e);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('studyquest_commerce_state');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    gameState = { ...gameState, ...parsed };
+                } catch (e) {
+                    console.error("Load failed, loading defaults", e);
+                    gameState.tasks = [...DEFAULT_COMMERCE_TASKS];
+                }
+            } else {
+                gameState.tasks = JSON.parse(JSON.stringify(DEFAULT_COMMERCE_TASKS));
+            }
+        }
+
+        function showSaveBadge() {
+            const badge = document.getElementById('saveBadge');
+            badge.classList.remove('hidden');
+            setTimeout(() => {
+                // Keep visible silently
+            }, 1000);
+        }
+
+        /* ==========================================================================
+           REAL-TIME CLOCK (MILLISECOND ACCURACY)
+           ========================================================================== */
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const ms = String(now.getMilliseconds()).padStart(3, '0');
+
+            document.getElementById('liveClock').textContent = `${hours}:${minutes}:${seconds}.${ms}`;
+
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const date = String(now.getDate()).padStart(2, '0');
+            
+            if (gameState.lang === 'si') {
+                document.getElementById('liveDate').textContent = `${year} ජනවාරි/දෙසැ ${date} දින`;
+            } else {
+                document.getElementById('liveDate').textContent = `${year}-${month}-${date}`;
+            }
+        }
+
+        /* ==========================================================================
+           LANGUAGE SWITCHER
+           ========================================================================== */
+        function toggleLanguage() {
+            gameState.lang = gameState.lang === 'si' ? 'en' : 'si';
+            document.getElementById('langBtnLabel').textContent = gameState.lang === 'si' ? 'English' : 'සිංහල';
+            saveToLocalStorage();
+            renderAll();
+            showToast(gameState.lang === 'si' ? 'සිංහල භාෂාවට මාරු විය' : 'Switched to English');
+        }
+
+        function renderAll() {
+            const t = TRANSLATIONS[gameState.lang];
+
+            // Header & Subheader
+            document.getElementById('headerStreamTag').textContent = t.headerStream;
+            document.getElementById('subHeaderTag').textContent = t.subHeader;
+            document.getElementById('saveStatusText').textContent = t.saveStatus;
+            document.getElementById('btnHeaderReset').textContent = t.btnHeaderReset;
+
+            // Reset Modal Text
+            document.getElementById('resetModalTitle').textContent = t.resetModalTitle;
+            document.getElementById('resetModalSub').textContent = t.resetModalSub;
+            document.getElementById('resetModalBody').textContent = t.resetModalBody;
+            document.getElementById('btnResetProgressOnlyText').textContent = t.btnResetProgressOnlyText;
+            document.getElementById('btnFullResetText').textContent = t.btnFullResetText;
+            document.getElementById('btnCancelReset').textContent = t.btnCancelReset;
+
+            // Character HUD Labels
+            document.getElementById('heroClassLabel').textContent = t.heroClass;
+            document.getElementById('labelHP').textContent = t.labelHP;
+            document.getElementById('labelXP').textContent = t.labelXP;
+            document.getElementById('labelMP').textContent = t.labelMP;
+
+            // Stats values
+            document.getElementById('heroLevel').textContent = gameState.hero.level;
+            document.getElementById('heroGold').textContent = gameState.hero.gold;
+            document.getElementById('heroGems').textContent = gameState.hero.gems;
+            document.getElementById('heroStreak').textContent = gameState.hero.streak;
+            document.getElementById('avatarDisplay').textContent = gameState.hero.avatar;
+
+            document.getElementById('textHP').textContent = `${gameState.hero.hp}/${gameState.hero.maxHp}`;
+            document.getElementById('barHP').style.width = `${(gameState.hero.hp / gameState.hero.maxHp) * 100}%`;
+
+            document.getElementById('textXP').textContent = `${gameState.hero.xp}/${gameState.hero.maxXp}`;
+            document.getElementById('barXP').style.width = `${(gameState.hero.xp / gameState.hero.maxXp) * 100}%`;
+
+            document.getElementById('textMP').textContent = `${gameState.hero.mp}/${gameState.hero.maxMp}`;
+            document.getElementById('barMP').style.width = `${(gameState.hero.mp / gameState.hero.maxMp) * 100}%`;
+
+            // Boss Area
+            document.getElementById('bossHeader').textContent = t.bossHeader;
+            document.getElementById('bossStage').textContent = gameState.boss.stage;
+            document.getElementById('bossName').textContent = gameState.lang === 'si' ? gameState.boss.nameSi : gameState.boss.nameEn;
+            document.getElementById('bossSprite').textContent = gameState.boss.sprite;
+            document.getElementById('bossHPText').textContent = `${gameState.boss.hp} / ${gameState.boss.maxHp}`;
+            document.getElementById('bossHPBar').style.width = `${Math.max(0, (gameState.boss.hp / gameState.boss.maxHp) * 100)}%`;
+            document.getElementById('bossHelpText').textContent = t.bossHelp;
+
+            // Fast simulator
+            document.getElementById('simTitle').textContent = t.simTitle;
+            document.getElementById('simDesc').textContent = t.simDesc;
+            document.getElementById('simBtnText').textContent = t.simBtn;
+
+            // Navigation Tabs
+            document.getElementById('tabLabelTasks').textContent = t.tabTasks;
+            document.getElementById('tabLabelShop').textContent = t.tabShop;
+            document.getElementById('tabLabelHistory').textContent = t.tabHistory;
+            document.getElementById('btnResetTasks').textContent = t.btnReset;
+
+            // Task Form & Headings
+            document.getElementById('btnAddTask').textContent = t.addTaskBtn;
+            document.getElementById('newTaskTitle').placeholder = t.inputPlaceholder;
+            document.getElementById('colHabitsTitle').textContent = t.colHabits;
+            document.getElementById('colDailiesTitle').textContent = t.colDailies;
+            document.getElementById('colTodosTitle').textContent = t.colTodos;
+
+            // Shop
+            document.getElementById('shopTitle').textContent = t.shopTitle;
+            document.getElementById('shopSub').textContent = t.shopSub;
+            document.getElementById('labelYourGold').textContent = t.labelBalance;
+            document.getElementById('shopUserGold').textContent = gameState.hero.gold;
+            document.getElementById('shopUserGems').textContent = gameState.hero.gems;
+
+            // History
+            document.getElementById('historyTitle').textContent = t.historyTitle;
+            document.getElementById('historySub').textContent = t.historySub;
+            document.getElementById('labelClearAllHistory').textContent = t.labelClearAllHistory;
+
+            // Render lists
+            renderTasks();
+            renderShop();
+            renderHistory();
+        }
+
+        /* ==========================================================================
+           SYSTEM RESET MECHANICS (CUSTOM TASK PRESERVATION OPTION)
+           ========================================================================== */
+        function openResetModal() {
+            document.getElementById('resetModal').classList.remove('hidden');
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').classList.add('hidden');
+        }
+
+        function executeReset(fullWipe = false) {
+            try {
+                // Keep existing tasks if fullWipe is false, resetting completion status
+                let preservedTasks = [];
+                if (!fullWipe) {
+                    preservedTasks = gameState.tasks.map(t => ({
+                        ...t,
+                        completed: false,
+                        positiveCount: 0,
+                        negativeCount: 0
+                    }));
+                } else {
+                    preservedTasks = JSON.parse(JSON.stringify(DEFAULT_COMMERCE_TASKS));
+                }
+
+                // Re-initialize state with fresh defaults
+                gameState = {
+                    lang: gameState.lang, // Keep active language selection
+                    hero: {
+                        name: 'Commerce Scholar',
+                        avatar: gameState.hero.avatar || '🎓',
+                        level: 1,
+                        hp: 100,
+                        maxHp: 100,
+                        xp: 0,
+                        maxXp: 100,
+                        mp: 50,
+                        maxMp: 50,
+                        gold: 0,
+                        gems: 0,
+                        streak: 1
+                    },
+                    boss: {
+                        stage: 1,
+                        nameEn: 'A/L Exam Shadow',
+                        nameSi: 'උසස් පෙළ විභාග රාක්ෂයා',
+                        hp: 200,
+                        maxHp: 200,
+                        sprite: '👹'
+                    },
+                    tasks: preservedTasks,
+                    history: [],
+                    lastActiveDate: new Date().toISOString().split('T')[0]
+                };
+
+                saveToLocalStorage();
+                renderAll();
+                closeResetModal();
+
+                if (!fullWipe) {
+                    showToast(gameState.lang === 'si' ? 'Tasks ඉතිරි කර ප්‍රගතිය Reset කරන ලදී!' : 'Progress reset successfully! Your tasks were kept.', 'purple');
+                } else {
+                    showToast(gameState.lang === 'si' ? 'පද්ධතිය මුළුමනින්ම මුල සිට ආරම්භ විය!' : 'Full system reset complete!', 'rose');
+                }
+            } catch (e) {
+                console.error("Reset failed:", e);
+                closeResetModal();
+            }
+        }
+
+        /* ==========================================================================
+           TAB SWITCHING & AVATAR
+           ========================================================================== */
+        function switchTab(tab) {
+            ['Tasks', 'Shop', 'History'].forEach(t => {
+                const btn = document.getElementById(`tabBtn${t}`);
+                const content = document.getElementById(`tabContent${t}`);
+                if (t.toLowerCase() === tab) {
+                    btn.className = "px-4 py-2 rounded-xl text-xs md:text-sm font-bold bg-purple-600 text-white shadow-md flex items-center gap-2 transition";
+                    content.classList.remove('hidden');
+                } else {
+                    btn.className = "px-4 py-2 rounded-xl text-xs md:text-sm font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2 transition";
+                    content.classList.add('hidden');
+                }
+            });
+        }
+
+        const AVATARS = ['🎓', '🦁', '🦉', '⚔️', '📊', '💼', '🚀'];
+        function cycleAvatar() {
+            let idx = AVATARS.indexOf(gameState.hero.avatar);
+            idx = (idx + 1) % AVATARS.length;
+            gameState.hero.avatar = AVATARS[idx];
+            renderAll();
+            saveToLocalStorage();
+        }
+
+        /* ==========================================================================
+           TASK MANAGEMENT & HABITICA LOGIC
+           ========================================================================== */
+        function renderTasks() {
+            const habitsList = document.getElementById('listHabits');
+            const dailiesList = document.getElementById('listDailies');
+            const todosList = document.getElementById('listTodos');
+
+            habitsList.innerHTML = '';
+            dailiesList.innerHTML = '';
+            todosList.innerHTML = '';
+
+            let countH = 0, countD = 0, countT = 0;
+
+            gameState.tasks.forEach(task => {
+                if (task.type === 'habit') {
+                    countH++;
+                    habitsList.appendChild(createTaskElement(task));
+                } else if (task.type === 'daily') {
+                    countD++;
+                    dailiesList.appendChild(createTaskElement(task));
+                } else if (task.type === 'todo') {
+                    countT++;
+                    todosList.appendChild(createTaskElement(task));
+                }
+            });
+
+            document.getElementById('countHabits').textContent = countH;
+            document.getElementById('countDailies').textContent = countD;
+            document.getElementById('countTodos').textContent = countT;
+        }
+
+        function createTaskElement(task) {
+            const card = document.createElement('div');
+            card.className = "bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-start justify-between gap-2 shadow-sm hover:border-slate-700 transition";
+
+            const diffColor = task.difficulty === 'Easy' ? 'text-emerald-400 bg-emerald-950/40 border-emerald-800/40' :
+                              task.difficulty === 'Medium' ? 'text-amber-400 bg-amber-950/40 border-amber-800/40' :
+                              task.difficulty === 'Hard' ? 'text-rose-400 bg-rose-950/40 border-rose-800/40' :
+                              'text-purple-400 bg-purple-950/40 border-purple-800/40';
+
+            const subjTag = `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-purple-300 font-semibold">${task.subject || 'Commerce'}</span>`;
+            const diffTag = `<span class="text-[10px] px-1.5 py-0.5 rounded border ${diffColor}">${task.difficulty}</span>`;
+
+            if (task.type === 'habit') {
+                card.innerHTML = `
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-semibold text-slate-200 line-clamp-2">${escapeHtml(task.title)}</p>
+                        <div class="flex items-center gap-1.5 mt-1.5">
+                            ${subjTag}
+                            ${diffTag}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="triggerHabit('${task.id}', true)" class="w-7 h-7 rounded-lg bg-emerald-900/60 hover:bg-emerald-600 text-emerald-200 font-bold text-xs flex items-center justify-center transition border border-emerald-700/50">
+                            +
+                        </button>
+                        <button onclick="triggerHabit('${task.id}', false)" class="w-7 h-7 rounded-lg bg-rose-900/60 hover:bg-rose-600 text-rose-200 font-bold text-xs flex items-center justify-center transition border border-rose-700/50">
+                            -
+                        </button>
+                        <button onclick="deleteTask('${task.id}')" class="text-slate-600 hover:text-slate-400 text-xs ml-1">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+            } else if (task.type === 'daily') {
+                const isDone = task.completed;
+                card.innerHTML = `
+                    <button onclick="toggleDaily('${task.id}')" class="w-5 h-5 rounded border mt-0.5 flex items-center justify-center text-xs transition ${isDone ? 'bg-emerald-600 border-emerald-500 text-white' : 'border-slate-700 hover:border-slate-500 text-transparent'}">
+                        <i class="fa-solid fa-check"></i>
+                    </button>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-semibold ${isDone ? 'line-through text-slate-500' : 'text-slate-200'} line-clamp-2">${escapeHtml(task.title)}</p>
+                        <div class="flex items-center gap-1.5 mt-1.5">
+                            ${subjTag}
+                            ${diffTag}
+                            <span class="text-[10px] text-orange-400 font-mono"><i class="fa-solid fa-fire"></i> ${task.streak || 0}</span>
+                        </div>
+                    </div>
+                    <button onclick="deleteTask('${task.id}')" class="text-slate-600 hover:text-slate-400 text-xs">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+            } else if (task.type === 'todo') {
+                const isDone = task.completed;
+                card.innerHTML = `
+                    <button onclick="completeTodo('${task.id}')" class="w-5 h-5 rounded border mt-0.5 flex items-center justify-center text-xs transition ${isDone ? 'bg-emerald-600 border-emerald-500 text-white' : 'border-slate-700 hover:border-slate-500 text-transparent'}">
+                        <i class="fa-solid fa-check"></i>
+                    </button>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-semibold ${isDone ? 'line-through text-slate-500' : 'text-slate-200'} line-clamp-2">${escapeHtml(task.title)}</p>
+                        <div class="flex items-center gap-1.5 mt-1.5">
+                            ${subjTag}
+                            ${diffTag}
+                        </div>
+                    </div>
+                    <button onclick="deleteTask('${task.id}')" class="text-slate-600 hover:text-slate-400 text-xs">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+            }
+
+            return card;
+        }
+
+        function addNewTask() {
+            const titleInput = document.getElementById('newTaskTitle');
+            const title = titleInput.value.trim();
+            if (!title) return;
+
+            const type = document.getElementById('newTaskType').value;
+            const subject = document.getElementById('newTaskSubject').value;
+            const difficulty = document.getElementById('newTaskDifficulty').value;
+
+            const newTask = {
+                id: 'custom_' + Date.now(),
+                title,
+                type,
+                subject,
+                difficulty,
+                completed: false,
+                streak: 0,
+                positiveCount: 0,
+                negativeCount: 0
+            };
+
+            gameState.tasks.push(newTask);
+            titleInput.value = '';
+            renderAll();
+            saveToLocalStorage();
+            showToast(gameState.lang === 'si' ? 'නව කාර්යයක් එක් කරන ලදී!' : 'New task added!');
+        }
+
+        function deleteTask(id) {
+            gameState.tasks = gameState.tasks.filter(t => t.id !== id);
+            renderAll();
+            saveToLocalStorage();
+        }
+
+        function resetDefaultCommerceTasks() {
+            gameState.tasks = JSON.parse(JSON.stringify(DEFAULT_COMMERCE_TASKS));
+            renderAll();
+            saveToLocalStorage();
+            showToast(gameState.lang === 'si' ? 'වාණිජ Default Tasks සාර්ථකව පූරණය විය!' : 'Loaded default Commerce tasks!');
+        }
+
+        /* ==========================================================================
+           REWARDS & RPG ACTION MECHANICS
+           ========================================================================== */
+        function triggerHabit(id, isPositive) {
+            const task = gameState.tasks.find(t => t.id === id);
+            if (!task) return;
+
+            const multiplier = getDifficultyMultiplier(task.difficulty);
+
+            if (isPositive) {
+                task.positiveCount = (task.positiveCount || 0) + 1;
+                const xpGain = 15 * multiplier;
+                const goldGain = 10 * multiplier;
+                const bossDmg = 20 * multiplier;
+
+                rewardHero(xpGain, goldGain);
+                attackBoss(bossDmg);
+                showToast(`+${xpGain} XP, +${goldGain} Gold!`, 'emerald');
+            } else {
+                task.negativeCount = (task.negativeCount || 0) + 1;
+                const hpLoss = 10 * multiplier;
+                damageHero(hpLoss);
+                showToast(`-${hpLoss} HP!`, 'rose');
+            }
+
+            renderAll();
+            saveToLocalStorage();
+        }
+
+        function toggleDaily(id) {
+            const task = gameState.tasks.find(t => t.id === id);
+            if (!task) return;
+
+            task.completed = !task.completed;
+            const multiplier = getDifficultyMultiplier(task.difficulty);
+
+            if (task.completed) {
+                task.streak = (task.streak || 0) + 1;
+                const xpGain = 20 * multiplier;
+                const goldGain = 15 * multiplier;
+                const bossDmg = 30 * multiplier;
+
+                rewardHero(xpGain, goldGain);
+                attackBoss(bossDmg);
+                showToast(gameState.lang === 'si' ? 'දෛනික කාර්යය සම්පූර්ණයි!' : 'Daily completed!', 'emerald');
+            } else {
+                task.streak = Math.max(0, (task.streak || 0) - 1);
+            }
+
+            renderAll();
+            saveToLocalStorage();
+        }
+
+        function completeTodo(id) {
+            const task = gameState.tasks.find(t => t.id === id);
+            if (!task) return;
+
+            task.completed = !task.completed;
+            const multiplier = getDifficultyMultiplier(task.difficulty);
+
+            if (task.completed) {
+                const xpGain = 25 * multiplier;
+                const goldGain = 20 * multiplier;
+                const bossDmg = 40 * multiplier;
+
+                rewardHero(xpGain, goldGain);
+                attackBoss(bossDmg);
+                showToast(gameState.lang === 'si' ? 'කාර්යය සාර්ථකයි!' : 'Task completed!', 'emerald');
+            }
+
+            renderAll();
+            saveToLocalStorage();
+        }
+
+        function getDifficultyMultiplier(diff) {
+            switch(diff) {
+                case 'Easy': return 1;
+                case 'Medium': return 1.5;
+                case 'Hard': return 2;
+                case 'Epic': return 3;
+                default: return 1;
+            }
+        }
+
+        function rewardHero(xp, gold) {
+            gameState.hero.xp += xp;
+            gameState.hero.gold += gold;
+
+            // Level Up logic
+            if (gameState.hero.xp >= gameState.hero.maxXp) {
+                gameState.hero.level++;
+                gameState.hero.xp -= gameState.hero.maxXp;
+                gameState.hero.maxXp = Math.floor(gameState.hero.maxXp * 1.25);
+                gameState.hero.hp = gameState.hero.maxHp;
+                gameState.hero.mp = gameState.hero.maxMp;
+                gameState.hero.gems += 1;
+                showToast(gameState.lang === 'si' ? `ලෙවල් අප්! LEVEL ${gameState.hero.level}!` : `Level Up! LEVEL ${gameState.hero.level}!`, 'purple');
+            }
+        }
+
+        function damageHero(amount) {
+            gameState.hero.hp = Math.max(0, gameState.hero.hp - amount);
+            if (gameState.hero.hp === 0) {
+                showToast(gameState.lang === 'si' ? 'සෞඛ්‍යය (HP) අවසන් විය! -20 Gold' : 'HP reached zero! Lost 20 Gold', 'rose');
+                gameState.hero.gold = Math.max(0, gameState.hero.gold - 20);
+                gameState.hero.hp = gameState.hero.maxHp;
+            }
+        }
+
+        function attackBoss(dmg) {
+            gameState.boss.hp -= dmg;
+
+            // Floating damage pop text
+            showDamagePop(`-${dmg}`);
+
+            if (gameState.boss.hp <= 0) {
+                // Defeated Boss
+                gameState.hero.gold += 100;
+                gameState.hero.gems += 2;
+                gameState.boss.stage++;
+                gameState.boss.maxHp = Math.floor(gameState.boss.maxHp * 1.4);
+                gameState.boss.hp = gameState.boss.maxHp;
+
+                const bossSprites = ['👹', '🐉', '👾', '🗿', '☠️'];
+                const bossNamesEn = ['Accounting Deficit Monster', 'Economic Inflation Beast', 'Exam Stress Titan', 'A/L Final Exam Dragon'];
+                const bossNamesSi = ['ගිණුම්කරණ පරතර රාක්ෂයා', 'උද්ධමන මහා රාක්ෂයා', 'විභාග පීඩන ටයිටන්', 'උසස් පෙළ මහා නාගයා'];
+
+                const idx = (gameState.boss.stage - 1) % bossSprites.length;
+                gameState.boss.sprite = bossSprites[idx];
+                gameState.boss.nameEn = bossNamesEn[idx % bossNamesEn.length];
+                gameState.boss.nameSi = bossNamesSi[idx % bossNamesSi.length];
+
+                showToast(gameState.lang === 'si' ? 'රාක්ෂයා පරාජය කරන ලදී! +100 Gold, +2 Gems!' : 'Boss Defeated! +100 Gold, +2 Gems!', 'purple');
+            }
+        }
+
+        function showDamagePop(text) {
+            const area = document.getElementById('damagePopArea');
+            if (!area) return;
+
+            const pop = document.createElement('div');
+            pop.className = "damage-pop font-black text-xl text-rose-500 drop-shadow-md";
+            pop.textContent = text;
+            area.appendChild(pop);
+
+            setTimeout(() => pop.remove(), 800);
+        }
+
+        /* ==========================================================================
+           SHOP SYSTEM
+           ========================================================================== */
+        function renderShop() {
+            const shopGrid = document.getElementById('shopGrid');
+            shopGrid.innerHTML = '';
+
+            SHOP_ITEMS_DATA.forEach(item => {
+                const title = gameState.lang === 'si' ? item.nameSi : item.nameEn;
+                const card = document.createElement('div');
+                card.className = "bg-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-3 shadow-sm hover:border-slate-700 transition";
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="text-3xl">${item.icon}</div>
+                        <div>
+                            <h4 class="font-bold text-xs md:text-sm text-slate-200">${escapeHtml(title)}</h4>
+                            <p class="text-xs text-amber-400 font-semibold mt-0.5">
+                                <i class="fa-solid fa-coins"></i> ${item.cost} Gold
+                            </p>
+                        </div>
+                    </div>
+                    <button onclick="buyShopItem('${item.id}')" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-extrabold px-3 py-1.5 rounded-lg text-xs transition shadow">
+                        ${gameState.lang === 'si' ? 'මිලදී ගන්න' : 'Buy'}
+                    </button>
+                `;
+                shopGrid.appendChild(card);
+            });
+        }
+
+        function buyShopItem(id) {
+            const item = SHOP_ITEMS_DATA.find(i => i.id === id);
+            if (!item) return;
+
+            if (gameState.hero.gold < item.cost) {
+                showToast(gameState.lang === 'si' ? 'ප්‍රමාණවත් රත්රන් නොමැත!' : 'Not enough Gold!', 'rose');
+                return;
+            }
+
+            gameState.hero.gold -= item.cost;
+
+            if (item.type === 'hp') {
+                gameState.hero.hp = Math.min(gameState.hero.maxHp, gameState.hero.hp + item.amount);
+            } else if (item.type === 'mp') {
+                gameState.hero.mp = Math.min(gameState.hero.maxMp, gameState.hero.mp + item.amount);
+            } else if (item.type === 'xp') {
+                rewardHero(item.amount, 0);
+            } else if (item.type === 'weapon') {
+                attackBoss(item.amount);
+            } else if (item.type === 'gem') {
+                gameState.hero.gems += item.amount;
+            }
+
+            renderAll();
+            saveToLocalStorage();
+            showToast(gameState.lang === 'si' ? 'මිලදී ගැනීම සාර්ථකයි!' : 'Item purchased successfully!', 'emerald');
+        }
+
+        /* ==========================================================================
+           DAILY ROLLOVER & HISTORY ARCHIVING
+           ========================================================================== */
+        function checkDayRollover() {
+            const today = new Date().toISOString().split('T')[0];
+            if (gameState.lastActiveDate !== today) {
+                archiveDailyHistory(gameState.lastActiveDate);
+                resetDailies();
+                gameState.lastActiveDate = today;
+                gameState.hero.streak += 1;
+                saveToLocalStorage();
+            }
+        }
+
+        function simulateNextDay() {
+            const prevDate = gameState.lastActiveDate;
+            archiveDailyHistory(prevDate);
+            resetDailies();
+
+            // Advance date artificially
+            const d = new Date(gameState.lastActiveDate);
+            d.setDate(d.getDate() + 1);
+            gameState.lastActiveDate = d.toISOString().split('T')[0];
+            gameState.hero.streak += 1;
+
+            renderAll();
+            saveToLocalStorage();
+            showToast(gameState.lang === 'si' ? 'ඊළඟ දිනයට මාරු වී වාර්තා සුරකින ලදී!' : 'Simulated rollover to next day!', 'purple');
+        }
+
+        function archiveDailyHistory(dateStr) {
+            const completedDailies = gameState.tasks.filter(t => t.type === 'daily' && t.completed).length;
+            const totalDailies = gameState.tasks.filter(t => t.type === 'daily').length;
+            const completedTodos = gameState.tasks.filter(t => t.type === 'todo' && t.completed).length;
+
+            const record = {
+                id: 'hist_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                date: dateStr,
+                completedDailies,
+                totalDailies,
+                completedTodos,
+                gold: gameState.hero.gold,
+                level: gameState.hero.level,
+                streak: gameState.hero.streak
+            };
+
+            gameState.history.unshift(record);
+            if (gameState.history.length > 30) gameState.history.pop(); // Keep 30 days history
+        }
+
+        function resetDailies() {
+            gameState.tasks.forEach(t => {
+                if (t.type === 'daily') {
+                    t.completed = false;
+                }
+            });
+        }
+
+        function deleteHistoryRecord(id) {
+            gameState.history = gameState.history.filter(h => h.id !== id);
+            renderHistory();
+            saveToLocalStorage();
+            showToast(gameState.lang === 'si' ? 'අතීත වාර්තාව මකා දමන ලදී!' : 'History entry deleted!', 'rose');
+        }
+
+        function clearAllHistory() {
+            if (gameState.history.length === 0) return;
+            const confirmMsg = gameState.lang === 'si' ? 'ඔබට සියලුම අතීත වාර්තා මකා දැමීමට අවශ්‍යද?' : 'Are you sure you want to clear all history logs?';
+            if (confirm(confirmMsg)) {
+                gameState.history = [];
+                renderHistory();
+                saveToLocalStorage();
+                showToast(gameState.lang === 'si' ? 'සියලුම අතීත වාර්තා මකා දමන ලදී!' : 'All history logs cleared!', 'rose');
+            }
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('historyContainer');
+            container.innerHTML = '';
+
+            const btnClearAll = document.getElementById('btnClearAllHistory');
+            if (gameState.history.length === 0) {
+                btnClearAll.classList.add('hidden');
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-500 text-xs">
+                        ${gameState.lang === 'si' ? 'තවමත් අතීත වාර්තා නොමැත. "ඊළඟ දිනයට යන්න" බොත්තම මගින් පරීක්ෂා කරන්න.' : 'No archived history yet. Use "Simulate Tomorrow" to test daily rollover.'}
+                    </div>
+                `;
+                return;
+            } else {
+                btnClearAll.classList.remove('hidden');
+            }
+
+            const deleteLabel = gameState.lang === 'si' ? TRANSLATIONS.si.labelDeleteRecord : TRANSLATIONS.en.labelDeleteRecord;
+
+            gameState.history.forEach((h, index) => {
+                // Assign dynamic ID if old record lacks one
+                if (!h.id) h.id = 'hist_legacy_' + index + '_' + Date.now();
+
+                const card = document.createElement('div');
+                card.className = "bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 hover:border-slate-700 transition";
+
+                const rate = h.totalDailies > 0 ? Math.round((h.completedDailies / h.totalDailies) * 100) : 100;
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-purple-950 border border-purple-800 text-purple-300 font-bold text-xs flex items-center justify-center">
+                            ${rate}%
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs md:text-sm text-slate-200">${h.date}</h4>
+                            <p class="text-xs text-slate-400">
+                                Dailies: ${h.completedDailies}/${h.totalDailies} | To-Dos: ${h.completedTodos}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 text-xs font-semibold">
+                        <span class="text-amber-400"><i class="fa-solid fa-coins"></i> ${h.gold} Gold</span>
+                        <span class="text-purple-400"><i class="fa-solid fa-shield"></i> Lvl ${h.level}</span>
+                        <span class="text-orange-400"><i class="fa-solid fa-fire"></i> ${h.streak} d</span>
+                        
+                        <!-- Single Record Delete Button -->
+                        <button onclick="deleteHistoryRecord('${h.id}')" class="ml-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-800/60 text-rose-300 px-2.5 py-1 rounded-lg text-xs flex items-center gap-1 transition" title="Delete record">
+                            <i class="fa-solid fa-trash"></i>
+                            <span>${deleteLabel}</span>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        /* ==========================================================================
+           UI UTILITIES & TOAST NOTIFICATIONS
+           ========================================================================== */
+        function showToast(msg, color = 'purple') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+
+            const bgClass = color === 'emerald' ? 'bg-emerald-900/90 border-emerald-600 text-emerald-100' :
+                            color === 'rose' ? 'bg-rose-900/90 border-rose-600 text-rose-100' :
+                            'bg-purple-900/90 border-purple-600 text-purple-100';
+
+            toast.className = `px-4 py-2.5 rounded-xl border shadow-xl text-xs font-bold transition transform translate-y-2 opacity-0 flex items-center gap-2 ${bgClass}`;
+            toast.innerHTML = `<i class="fa-solid fa-bell text-sm"></i> <span>${escapeHtml(msg)}</span>`;
+
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
